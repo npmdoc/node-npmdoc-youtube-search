@@ -1,0 +1,171 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+    >youtube-search (v1.0.9)</a>
+</h1>
+<h4>Search for youtube videos</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.youtube-search">module youtube-search</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.youtube-search.youtube-search">
+            function <span class="apidocSignatureSpan"></span>youtube-search
+            <span class="apidocSignatureSpan">(term, opts, cb)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.youtube-search" id="apidoc.module.youtube-search">module youtube-search</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.youtube-search.youtube-search" id="apidoc.element.youtube-search.youtube-search">
+        function <span class="apidocSignatureSpan"></span>youtube-search
+        <span class="apidocSignatureSpan">(term, opts, cb)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">youtube-search = function (term, opts, cb) {
+  if (typeof opts === &#x27;function&#x27;) {
+    cb = opts
+    opts = {}
+  }
+
+  var params = {
+    q: term,
+    part: opts.part || &#x27;snippet&#x27;,
+    maxResults: opts.maxResults || 30
+  }
+
+  Object.keys(opts).map(function (k) {
+    if (allowedProperties.indexOf(k) &#x3e; -1) params[k] = opts[k]
+  })
+
+  xhr({
+    url: &#x27;https://www.googleapis.com/youtube/v3/search?&#x27; + querystring.stringify(params),
+    method: &#x27;GET&#x27;
+  }, function (err, res, body) {
+    if (err) return cb(err)
+
+    try {
+      var result = JSON.parse(body)
+
+      if (result.error) {
+        var error = new Error(result.error.errors.shift().message)
+        return cb(error)
+      }
+
+      var pageInfo = {
+        totalResults: result.pageInfo.totalResults,
+        resultsPerPage: result.pageInfo.resultsPerPage,
+        nextPageToken: result.nextPageToken,
+        prevPageToken: result.prevPageToken
+      }
+
+      var findings = result.items.map(function (item) {
+        var link = &#x27;&#x27;
+        var id = &#x27;&#x27;
+        switch (item.id.kind) {
+          case &#x27;youtube#channel&#x27;:
+            link = &#x27;https://www.youtube.com/channel/&#x27; + item.id.channelId
+            id = item.id.channelId
+            break
+          case &#x27;youtube#playlist&#x27;:
+            link = &#x27;https://www.youtube.com/playlist&#x26;list=&#x27; + item.id.playlistId
+            id = item.id.playlistId
+            break
+          default:
+            link = &#x27;https://www.youtube.com/watch?v=&#x27; + item.id.videoId
+            id = item.id.videoId
+            break
+        }
+
+        return {
+          id: id,
+          link: link,
+          kind: item.id.kind,
+          publishedAt: item.snippet.publishedAt,
+          channelId: item.snippet.channelId,
+          channelTitle: item.snippet.channelTitle,
+          title: item.snippet.title,
+          description: item.snippet.description,
+          thumbnails: item.snippet.thumbnails
+        }
+      })
+
+      return cb(null, findings, pageInfo)
+    } catch(e) {
+      return cb(e)
+    }
+  })
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
